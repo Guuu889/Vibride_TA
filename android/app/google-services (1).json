@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "477001738591",
+    "project_id": "beaming-talent-457712-p3",
+    "storage_bucket": "beaming-talent-457712-p3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:477001738591:android:2a42eee4e3cf460188eeea",
+        "android_client_info": {
+          "package_name": "com.davita.application"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDUqN1yEG6MdHoIoXF9dglYzyGGOHnhEU4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
