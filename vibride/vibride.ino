@@ -5,8 +5,8 @@
 
 #define SERVICE_UUID        "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
 #define CHARACTERISTIC_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a8"
-#define LEFT_VIBRATION_PIN  22 // GPIO untuk motor getar kiri
-#define RIGHT_VIBRATION_PIN 23 // GPIO untuk motor getar kanan
+#define LEFT_VIBRATION_PIN  19 // GPIO untuk motor getar kiri
+#define RIGHT_VIBRATION_PIN 18 // GPIO untuk motor getar kanan
 
 BLEServer* pServer = NULL;
 BLECharacteristic* pCharacteristic = NULL;
@@ -125,16 +125,26 @@ void loop() {
     newCommandReceived = false;
 
     // Pola getaran sederhana
-    if (currentCommand == "TURN_SLIGHT_LEFT" || currentCommand == "FORK_LEFT") {
-      vibrateLeft(1000); // 1 detik
-      Serial.println("TURN_SLIGHT_LEFT or FORK_LEFT vibration triggered");
-      currentCommand = ""; // Reset setelah getaran selesai
-    }
-    else if (currentCommand == "TURN_SLIGHT_RIGHT" || currentCommand == "FORK_RIGHT") {
-      vibrateRight(1000); // 1 detik
-      Serial.println("TURN_SLIGHT_RIGHT or FORK_RIGHT vibration triggered");
-      currentCommand = ""; // Reset setelah getaran selesai
-    }
+    if (currentCommand == "TURN_SLIGHT_LEFT") {
+    vibrateLeft(1000); // 1 detik
+    Serial.println("TURN_SLIGHT_LEFT vibration triggered");
+    currentCommand = ""; // Reset setelah getaran selesai
+}
+else if (currentCommand == "FORK_LEFT") {
+    vibrateLeft(1000); // 1 detik
+    Serial.println("FORK_LEFT vibration triggered");
+    currentCommand = ""; // Reset setelah getaran selesai
+}
+else if (currentCommand == "TURN_SLIGHT_RIGHT") {
+    vibrateRight(1000); // 1 detik
+    Serial.println("TURN_SLIGHT_RIGHT vibration triggered");
+    currentCommand = ""; // Reset setelah getaran selesai
+}
+else if (currentCommand == "FORK_RIGHT") {
+    vibrateRight(1000); // 1 detik
+    Serial.println("FORK_RIGHT vibration triggered");
+    currentCommand = ""; // Reset setelah getaran selesai
+}
     else if (currentCommand == "TURN_LEFT") {
       vibrateLeft(500); // 0.5 detik
       Serial.println("TURN_LEFT vibration triggered");

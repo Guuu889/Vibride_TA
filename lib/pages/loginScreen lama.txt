@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ta/main_page.dart';
+import 'package:ta/profile_cpw.dart';
 import 'package:ta/register.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -12,7 +13,6 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController _resetEmailController = TextEditingController();
   final _auth = FirebaseAuth.instance;
   final _firestore = FirebaseFirestore.instance;
 
@@ -56,98 +56,6 @@ class _LoginScreenState extends State<LoginScreen> {
         SnackBar(content: Text('Gagal login: $e')),
       );
     }
-  }
-
-  Future<void> _forgotPassword() async {
-    try {
-      if (_resetEmailController.text.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Masukkan email untuk reset password!')),
-        );
-        return;
-      }
-
-      await _auth.sendPasswordResetEmail(
-          email: _resetEmailController.text.trim());
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(
-                'Email reset password telah dikirim! Periksa inbox Anda.')),
-      );
-      _resetEmailController.clear();
-      Navigator.of(context).pop(); // Tutup dialog setelah sukses
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal mengirim email reset: $e')),
-      );
-    }
-  }
-
-  void _showForgotPasswordDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          'Lupa Password',
-          style: TextStyle(
-            fontFamily: 'Aileron',
-            fontSize: 20,
-            fontWeight: FontWeight.w900,
-          ),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Masukkan email Anda untuk menerima link reset password.',
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 14,
-              ),
-            ),
-            SizedBox(height: 10),
-            TextField(
-              controller: _resetEmailController,
-              decoration: InputDecoration(
-                labelText: 'Email',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(
-              'Batal',
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                color: Colors.grey,
-              ),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: _forgotPassword,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF0E1756),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: Text(
-              'Kirim',
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -293,17 +201,50 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
-
-                    // Tombol Lupa Password
                     TextButton(
-                      onPressed: _showForgotPasswordDialog,
-                      child: Text(
-                        'Lupa Password?',
-                        style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: MediaQuery.of(context).size.width * 0.035,
-                          color: Colors.blue,
-                          fontWeight: FontWeight.bold,
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          PageRouteBuilder(
+                            transitionDuration: Duration(milliseconds: 300),
+                            pageBuilder:
+                                (context, animation, secondaryAnimation) =>
+                                    RegisterPage(),
+                            transitionsBuilder: (context, animation,
+                                secondaryAnimation, child) {
+                              const begin = Offset(1.0, 0.0);
+                              const end = Offset.zero;
+                              const curve = Curves.easeInOut;
+
+                              var tween = Tween(begin: begin, end: end)
+                                  .chain(CurveTween(curve: curve));
+                              var offsetAnimation = animation.drive(tween);
+
+                              return SlideTransition(
+                                position: offsetAnimation,
+                                child: child,
+                              );
+                            },
+                          ),
+                        );
+                      },
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    ProfileChangePasswordPage()),
+                          );
+                        },
+                        child: Text(
+                          'Lupa Password?',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: MediaQuery.of(context).size.width * 0.035,
+                            color: Colors.blue,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),

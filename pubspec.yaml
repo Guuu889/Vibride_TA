@@ -38,7 +38,7 @@ flutter:
   assets:
     - assets/logo.png
     - assets/navigate.png # Pastikan file logo ada di folder assets
-
+    - assets/navigatedua.png
   fonts:
     - family: Aileron
       fonts:

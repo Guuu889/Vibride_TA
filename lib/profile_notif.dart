@@ -16,6 +16,8 @@ class _ProfileNotifPageState extends State<ProfileNotifPage> {
     "Belok kiri",
     "Belok kanan",
     "Putar balik ke kanan",
+    "Ambil cabang jalan kiri",
+    "Ambil cabang jalan kanan",
     "Ambil belokan kiri",
     "Ambil belokan kanan",
     "Belok tajam ke kiri",
@@ -45,7 +47,7 @@ class _ProfileNotifPageState extends State<ProfileNotifPage> {
       );
       print('Mengirim perintah vibrasi: $command');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Perintah $command dikirim')),
+        SnackBar(content: Text('Getaran $command dikirim ke ESP32')),
       );
     } catch (e) {
       print('Error mengirim perintah vibrasi: $e');
@@ -114,25 +116,6 @@ class _ProfileNotifPageState extends State<ProfileNotifPage> {
                           color: Colors.black,
                         ),
                       ),
-                    ),
-                    SizedBox(height: 30),
-                    notificationItem(
-                      "Baterai habis",
-                      isBatteryLow,
-                      (value) {
-                        setState(() {
-                          isBatteryLow = value;
-                        });
-                      },
-                    ),
-                    notificationItem(
-                      "Headset terhubung",
-                      isHeadsetConnected,
-                      (value) {
-                        setState(() {
-                          isHeadsetConnected = value;
-                        });
-                      },
                     ),
                     SizedBox(height: 20),
                     Text(
@@ -210,10 +193,14 @@ class _ProfileNotifPageState extends State<ProfileNotifPage> {
                 sendVibrationCommand("TURN_RIGHT");
               } else if (title == "Putar balik ke kanan") {
                 sendVibrationCommand("UTURN_RIGHT");
-              } else if (title == "Ambil belokan kiri") {
+              } else if (title == "Ambil cabang jalan kiri") {
                 sendVibrationCommand("FORK_LEFT");
-              } else if (title == "Ambil belokan kanan") {
+              } else if (title == "Ambil cabang jalan kanan") {
                 sendVibrationCommand("FORK_RIGHT");
+              } else if (title == "Ambil belokan kiri") {
+                sendVibrationCommand("TURN_SLIGHT_LEFT");
+              } else if (title == "Ambil belokan kanan") {
+                sendVibrationCommand("TURN_SLIGHT_RIGHT");
               } else if (title == "Belok tajam ke kiri") {
                 sendVibrationCommand("TURN_SHARP_LEFT");
               } else if (title == "Belok tajam ke kanan") {

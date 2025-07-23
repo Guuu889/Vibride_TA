@@ -27,7 +27,8 @@ class _ProfilePageState extends State<ProfilePage> {
     try {
       User? user = _auth.currentUser;
       if (user != null) {
-        DocumentSnapshot userDoc = await _firestore.collection('users').doc(user.uid).get();
+        DocumentSnapshot userDoc =
+            await _firestore.collection('users').doc(user.uid).get();
         if (userDoc.exists) {
           setState(() {
             _username = userDoc['username'] ?? "Pengguna";
@@ -60,34 +61,6 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             child: Column(
               children: [
-                Align(
-                  alignment: Alignment.topLeft,
-                  child: Padding(
-                    padding: EdgeInsets.only(left: 20, top: 38),
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.pop(context);
-                      },
-                      child: Container(
-                        width: 45,
-                        height: 45,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black26,
-                              blurRadius: 6,
-                              offset: Offset(2, 2),
-                            ),
-                          ],
-                        ),
-                        child: Icon(Icons.arrow_back,
-                            color: Color(0xFF0E1756), size: 24),
-                      ),
-                    ),
-                  ),
-                ),
                 SizedBox(height: 10),
                 CircleAvatar(
                   radius: 40,
@@ -121,22 +94,18 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  menuItem(Icons.person, "Edit Profil", onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => ProfileEditPage()),
-                    );
-                  }),
                   menuItem(Icons.vpn_key, "Ganti Password", onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => ProfileChangePasswordPage()),
+                      MaterialPageRoute(
+                          builder: (context) => ProfileChangePasswordPage()),
                     );
                   }),
                   menuItem(Icons.notifications, "Notifikasi", onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => ProfileNotifPage()),
+                      MaterialPageRoute(
+                          builder: (context) => ProfileNotifPage()),
                     );
                   }),
                   menuItem(Icons.help, "Manual Pengguna", onTap: () {
@@ -160,7 +129,10 @@ class _ProfilePageState extends State<ProfilePage> {
                           User? user = _auth.currentUser;
                           if (user != null) {
                             // Hapus data pengguna dari Firestore
-                            await _firestore.collection('users').doc(user.uid).delete();
+                            await _firestore
+                                .collection('users')
+                                .doc(user.uid)
+                                .delete();
                             // Hapus akun dari Firebase Auth
                             await user.delete();
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -180,7 +152,8 @@ class _ProfilePageState extends State<ProfilePage> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(0xFF0E1756),
                         foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(vertical: 21, horizontal: 71),
+                        padding:
+                            EdgeInsets.symmetric(vertical: 21, horizontal: 71),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),

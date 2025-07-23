@@ -13,6 +13,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _resetEmailController = TextEditingController();
   final _auth = FirebaseAuth.instance;
   final _firestore = FirebaseFirestore.instance;
 
@@ -30,11 +31,9 @@ class _RegisterPageState extends State<RegisterPage> {
       }
 
       // Validasi password dan konfirmasi password
-      if (_passwordController.text.trim() !=
-          _confirmPasswordController.text.trim()) {
+      if (_passwordController.text.trim() != _confirmPasswordController.text.trim()) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Password dan Konfirmasi Password tidak cocok!')),
+          SnackBar(content: Text('Password dan Konfirmasi Password tidak cocok!')),
         );
         return;
       }
@@ -52,8 +51,7 @@ class _RegisterPageState extends State<RegisterPage> {
       }
 
       // Registrasi pengguna dengan email dan password
-      UserCredential userCredential =
-          await _auth.createUserWithEmailAndPassword(
+      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
@@ -74,6 +72,95 @@ class _RegisterPageState extends State<RegisterPage> {
         SnackBar(content: Text('Gagal registrasi: $e')),
       );
     }
+  }
+
+  Future<void> _forgotPassword() async {
+    try {
+      if (_resetEmailController.text.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Masukkan email untuk reset password!')),
+        );
+        return;
+      }
+
+      await _auth.sendPasswordResetEmail(email: _resetEmailController.text.trim());
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Email reset password telah dikirim! Periksa inbox Anda.')),
+      );
+      _resetEmailController.clear();
+      Navigator.of(context).pop(); // Tutup dialog setelah sukses
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal mengirim email reset: $e')),
+      );
+    }
+  }
+
+  void _showForgotPasswordDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Lupa Password',
+          style: TextStyle(
+            fontFamily: 'Aileron',
+            fontSize: 20,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Masukkan email Anda untuk menerima link reset password.',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 14,
+              ),
+            ),
+            SizedBox(height: 10),
+            TextField(
+              controller: _resetEmailController,
+              decoration: InputDecoration(
+                labelText: 'Email',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'Batal',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                color: Colors.grey,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: _forgotPassword,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFF0E1756),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Text(
+              'Kirim',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -104,8 +191,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ],
                 ),
-                child:
-                    Icon(Icons.arrow_back, color: Color(0xFF0E1756), size: 24),
+                child: Icon(Icons.arrow_back, color: Color(0xFF0E1756), size: 24),
               ),
             ),
           ),
@@ -147,10 +233,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                 Navigator.pushReplacement(
                                   context,
                                   PageRouteBuilder(
-                                    transitionDuration:
-                                        Duration(milliseconds: 300),
-                                    pageBuilder: (context, animation,
-                                            secondaryAnimation) =>
+                                    transitionDuration: Duration(milliseconds: 300),
+                                    pageBuilder: (context, animation, secondaryAnimation) =>
                                         LoginScreen(),
                                     transitionsBuilder: (context, animation,
                                         secondaryAnimation, child) {
@@ -160,13 +244,11 @@ class _RegisterPageState extends State<RegisterPage> {
 
                                       var tween = Tween(begin: begin, end: end)
                                           .chain(CurveTween(curve: curve));
-                                      var offsetAnimation =
-                                          animation.drive(tween);
+                                      var offsetAnimation = animation.drive(tween);
 
                                       return SlideTransition(
-                                        position: offsetAnimation,
-                                        child: child,
-                                      );
+                                          position: offsetAnimation,
+                                          child: child);
                                     },
                                   ),
                                 );
@@ -205,8 +287,22 @@ class _RegisterPageState extends State<RegisterPage> {
                       buildInputField('PASSWORD',
                           controller: _passwordController, isPassword: true),
                       buildInputField('KONFIRMASI PASSWORD',
-                          controller: _confirmPasswordController,
-                          isPassword: true),
+                          controller: _confirmPasswordController, isPassword: true),
+                      SizedBox(height: 10),
+                      Center(
+                        child: TextButton(
+                          onPressed: _showForgotPasswordDialog,
+                          child: Text(
+                            'Lupa Password?',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 14,
+                              color: Colors.blue,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
                       SizedBox(height: 20),
                       SizedBox(
                         width: double.infinity,

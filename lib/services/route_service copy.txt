@@ -15,11 +15,7 @@ class RouteService {
   final FlutterReactiveBle _ble = FlutterReactiveBle();
   DateTime? _lastSnapTime;
   DateTime? _lastVibrationTime;
-  DateTime? _lastRerouteTime;
-  Map<String, dynamic>? _lastManeuver;
-  List<LatLng> originalPolylineCoordinates = [];
-  int _rerouteAttempts = 0; // Penghitung rerouting
-  static const int maxRerouteAttempts = 3; // Batas rerouting
+  Map<String, dynamic>? _lastManeuver; // Menyimpan manuver terakhir yang dipicu
 
   RouteService({required this.context, required this.apiKey});
 
@@ -72,114 +68,6 @@ class RouteService {
     const minInterval = Duration(seconds: 3);
     if (_lastVibrationTime == null) return true;
     return DateTime.now().difference(_lastVibrationTime!) > minInterval;
-  }
-
-  bool _shouldReroute() {
-    const minRerouteInterval = Duration(seconds: 60);
-    if (_lastRerouteTime == null ||
-        DateTime.now().difference(_lastRerouteTime!) > minRerouteInterval) {
-      if (_rerouteAttempts < maxRerouteAttempts) {
-        return true;
-      } else {
-        print('Mencapai batas maksimum rerouting: $_rerouteAttempts');
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text(
-                    'Anda terus melenceng. Silakan kembali ke rute utama atau pilih rute baru.')),
-          );
-        }
-        return false;
-      }
-    }
-    print('Rerouting ditunda karena cooldown');
-    return false;
-  }
-
-  bool _isOffRoute(Position position, List<LatLng> polylineCoordinates) {
-    const double offRouteThreshold = 50.0;
-    double minDistance = double.infinity;
-
-    for (var point in polylineCoordinates) {
-      double distance = Geolocator.distanceBetween(
-        position.latitude,
-        position.longitude,
-        point.latitude,
-        point.longitude,
-      );
-      if (distance < minDistance) {
-        minDistance = distance;
-      }
-    }
-
-    print('Jarak terdekat ke rute: $minDistance meter');
-    return minDistance > offRouteThreshold;
-  }
-
-  Future<void> recalculateRoute(
-    Position position,
-    LatLng destinationLatLng,
-    List<LatLng> polylineCoordinates,
-    List<LatLng> originalPolylineCoordinates,
-    Map<PolylineId, Polyline> polylines,
-    List<Map<String, dynamic>> routeOptions,
-    int selectedRouteIndex,
-    void Function(VoidCallback) setState,
-    void Function(String?, String?) updateDistanceDuration,
-  ) async {
-    if (!_shouldReroute()) {
-      return;
-    }
-    _lastRerouteTime = DateTime.now();
-    _rerouteAttempts++; // Tambahkan percobaan rerouting
-    print(
-        'Menghitung ulang rute dari posisi: ${position.latitude}, ${position.longitude}, Percobaan: $_rerouteAttempts');
-
-    // Kosongkan data rute sebelumnya
-    polylineCoordinates.clear();
-    originalPolylineCoordinates.clear();
-    polylines.clear();
-    routeOptions.clear();
-
-    _lastManeuver = null; // Reset untuk mencegah manuver lama
-
-    await createPolylines(
-      position.latitude,
-      position.longitude,
-      destinationLatLng.latitude,
-      destinationLatLng.longitude,
-      routeOptions,
-      setState,
-    );
-
-    if (routeOptions.isNotEmpty) {
-      selectRoute(
-        0,
-        routeOptions,
-        polylineCoordinates,
-        originalPolylineCoordinates,
-        polylines,
-        setState,
-        updateDistanceDuration,
-      );
-      final distance = routeOptions[0]['distance'].toStringAsFixed(2);
-      final duration = "${routeOptions[0]['duration']} minutes";
-      setState(() {
-        updateDistanceDuration(distance, duration);
-      });
-      _rerouteAttempts = 0; // Reset penghitung jika rute baru berhasil
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Rute telah dihitung ulang')),
-        );
-      }
-    } else {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gagal menghitung ulang rute')),
-        );
-      }
-    }
   }
 
   Future<List<LatLng>> snapToRoads(List<LatLng> gpsPoints) async {
@@ -336,7 +224,11 @@ class RouteService {
 
     if (maneuvers.isEmpty) {
       print('Tidak ada manuver tersedia');
-      _lastManeuver = null; // Reset tanpa STOP
+      if (_lastManeuver != null) {
+        print('Mengirim STOP karena tidak ada manuver');
+        await sendVibrationCommand('STOP');
+        _lastManeuver = null;
+      }
       return;
     }
 
@@ -357,6 +249,7 @@ class RouteService {
       print(
           'Manuver: ${maneuver['maneuver']}, Jarak: $distance meter, Posisi manuver: $maneuverPos');
 
+      // Picu getaran pada jarak 10–50 meter untuk akomodasi akurasi GPS
       if (distance >= 10 && distance <= 50) {
         String command = '';
         switch (maneuver['maneuver']) {
@@ -403,7 +296,7 @@ class RouteService {
         print('Memicu getaran untuk $command pada jarak $distance meter');
         await sendVibrationCommand(command);
         _lastVibrationTime = DateTime.now();
-        _lastManeuver = maneuver;
+        _lastManeuver = maneuver; // Simpan manuver yang dipicu
         maneuverTriggered = true;
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -414,6 +307,7 @@ class RouteService {
       }
     }
 
+    // Jika tidak ada manuver yang dipicu dan ada manuver sebelumnya, kirim STOP
     if (!maneuverTriggered && _lastManeuver != null) {
       double distanceToLastManeuver = Geolocator.distanceBetween(
         currentPos.latitude,
@@ -421,10 +315,11 @@ class RouteService {
         _lastManeuver!['position'].latitude,
         _lastManeuver!['position'].longitude,
       );
-      if (distanceToLastManeuver > 50) {
+      if (distanceToLastManeuver < 8 || distanceToLastManeuver > 12) {
         print(
-            'Melewati manuver ${_lastManeuver!['maneuver']} pada jarak $distanceToLastManeuver meter');
-        _lastManeuver = null; // Reset tanpa STOP
+            'Mengirim STOP karena melewati manuver ${_lastManeuver!['maneuver']}');
+        await sendVibrationCommand('STOP');
+        _lastManeuver = null;
       }
     }
   }
@@ -439,80 +334,23 @@ class RouteService {
     void Function(VoidCallback) setState,
     List<Map<String, dynamic>> routeOptions,
     int selectedRouteIndex,
-    void Function(String?, String?) updateDistanceDuration,
   ) async {
+    final startTime = DateTime.now();
     print(
         'Memulai updatePolylineBasedOnPosition, posisi: ${LatLng(position.latitude, position.longitude)}');
 
     if (polylineCoordinates.isEmpty || destinationLatLng == null) {
       print('Polyline kosong atau tidak ada tujuan');
-      _lastManeuver = null; // Reset tanpa STOP
+      if (_lastManeuver != null) {
+        print('Mengirim STOP karena polyline kosong');
+        await sendVibrationCommand('STOP');
+        _lastManeuver = null;
+      }
       return;
     }
 
-    // Periksa jarak ke rute sebelumnya
-    double minDistance = double.infinity;
-    for (var point in polylineCoordinates) {
-      double distance = Geolocator.distanceBetween(
-        position.latitude,
-        position.longitude,
-        point.latitude,
-        point.longitude,
-      );
-      if (distance < minDistance) {
-        minDistance = distance;
-      }
-    }
-
-    bool nearPreviousRoute = minDistance < 100;
-    bool nearManeuver = false;
-    List<Map<String, dynamic>> maneuvers =
-        routeOptions.isNotEmpty && selectedRouteIndex < routeOptions.length
-            ? routeOptions[selectedRouteIndex]['maneuvers']
-            : [];
-    for (var maneuver in maneuvers) {
-      double distance = Geolocator.distanceBetween(
-        position.latitude,
-        position.longitude,
-        maneuver['position'].latitude,
-        maneuver['position'].longitude,
-      );
-      if (distance < 100) {
-        nearManeuver = true;
-        break;
-      }
-    }
-
-    if (_isOffRoute(position, polylineCoordinates) &&
-        !nearPreviousRoute &&
-        !nearManeuver) {
-      print('Pengguna menyimpang dari rute, menghitung ulang rute...');
-      await recalculateRoute(
-        position,
-        destinationLatLng,
-        polylineCoordinates,
-        originalPolylineCoordinates,
-        polylines,
-        routeOptions,
-        selectedRouteIndex,
-        setState,
-        updateDistanceDuration,
-      );
-    } else if (_isOffRoute(position, polylineCoordinates)) {
-      print('Pengguna melenceng, menyarankan kembali ke rute');
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text(
-                  'Anda melenceng dari rute. Perintah UTURN_RIGHT dikirim.')),
-        );
-      }
-      checkGeofenceAndTriggerVibration(position, maneuvers);
-    } else {
-      print(
-          'Memperbarui posisi: ${LatLng(position.latitude, position.longitude)}, Route index: $selectedRouteIndex');
-      checkGeofenceAndTriggerVibration(position, maneuvers);
-    }
+    print(
+        'Memperbarui posisi: ${LatLng(position.latitude, position.longitude)}, Route index: $selectedRouteIndex');
 
     if (routeOptions.isEmpty) {
       print('Route options kosong. Tidak ada rute yang tersedia.');
@@ -521,7 +359,11 @@ class RouteService {
           SnackBar(content: Text('Tidak ada rute yang tersedia')),
         );
       }
-      _lastManeuver = null; // Reset tanpa STOP
+      if (_lastManeuver != null) {
+        print('Mengirim STOP karena tidak ada rute');
+        await sendVibrationCommand('STOP');
+        _lastManeuver = null;
+      }
       return;
     }
 
@@ -533,9 +375,18 @@ class RouteService {
           SnackBar(content: Text('Rute tidak valid')),
         );
       }
-      _lastManeuver = null; // Reset tanpa STOP
+      if (_lastManeuver != null) {
+        print('Mengirim STOP karena rute tidak valid');
+        await sendVibrationCommand('STOP');
+        _lastManeuver = null;
+      }
       return;
     }
+
+    List<Map<String, dynamic>> maneuvers =
+        routeOptions[selectedRouteIndex]['maneuvers'];
+    print('Jumlah manuver untuk rute $selectedRouteIndex: ${maneuvers.length}');
+    checkGeofenceAndTriggerVibration(position, maneuvers);
 
     LatLng currentPos = LatLng(position.latitude, position.longitude);
     LatLng snappedCurrentPos = currentPos;
@@ -578,7 +429,7 @@ class RouteService {
     }
 
     int closestIndex = 0;
-    double minDistanceToPoly = double.infinity;
+    double minDistance = double.infinity;
     for (int i = 0; i < polylineCoordinates.length; i++) {
       double distance = Geolocator.distanceBetween(
         snappedCurrentPos.latitude,
@@ -586,8 +437,8 @@ class RouteService {
         polylineCoordinates[i].latitude,
         polylineCoordinates[i].longitude,
       );
-      if (distance < minDistanceToPoly) {
-        minDistanceToPoly = distance;
+      if (distance < minDistance) {
+        minDistance = distance;
         closestIndex = i;
       }
     }
@@ -605,8 +456,12 @@ class RouteService {
         polylineCoordinates.clear();
         _lastSnapTime = null;
         _lastVibrationTime = null;
-        _lastManeuver = null; // Reset tanpa STOP
       });
+      if (_lastManeuver != null) {
+        print('Mengirim STOP karena mencapai tujuan');
+        await sendVibrationCommand('STOP');
+        _lastManeuver = null;
+      }
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('You have reached your destination!')),
@@ -855,8 +710,9 @@ class RouteService {
       _lastSnapTime = null;
       _lastVibrationTime = null;
       _lastManeuver = null;
-      _rerouteAttempts = 0; // Reset penghitung rerouting
     });
+    print('Mengirim STOP karena rute dibatalkan');
+    sendVibrationCommand('STOP');
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Route cancelled successfully')),

@@ -50,53 +50,57 @@ class ProfileUSMPage extends StatelessWidget {
                 padding: const EdgeInsets.all(16.0),
                 child: SingleChildScrollView(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      SizedBox(height: 20),
-                      Center(
-                        child: Text(
-                          'Manual Pengguna',
-                          style: TextStyle(
-                            fontFamily: 'Aileron',
-                            fontSize: 30,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.black,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        SizedBox(height: 20),
+                        Center(
+                          child: Text(
+                            'Manual Pengguna',
+                            style: TextStyle(
+                              fontFamily: 'Aileron',
+                              fontSize: 30,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.black,
+                            ),
                           ),
                         ),
-                      ),
-                      SizedBox(height: 30),
-                      sectionTitle(context, "PENDAHULUAN"),
-                      sectionText(
-                        context,
-                        "Aplikasi ini dirancang untuk membantu pengemudi ojek online tunarungu "
-                        "dalam navigasi menggunakan sistem getaran di telinga.",
-                      ),
-                      SizedBox(height: 20),
-                      sectionTitle(context, "INSTALASI & OPERASIONAL"),
-                      sectionBulletText(
-                        context,
-                        "• Hidupkan Wi-Fi dan hubungkan ponsel dengan headset vibrasi.",
-                      ),
-                      sectionBulletText(
-                        context,
-                        "• Pastikan GPS sudah menyala sebelum menjalankan aplikasi.",
-                      ),
-                      sectionSubBulletText(
-                        context,
-                        "Apabila aplikasi tidak berjalan, pastikan perizinan akses lokasi "
-                        "pada navigasi di pengaturan ponsel sudah menyala.",
-                      ),
-                      SizedBox(height: 20),
-                      sectionTitle(context, "NOTIFIKASI HEADSET VIBRASI"),
-                      sectionText(
-                        context,
-                        "Navigasi dalam aplikasi ini bekerja dengan sistem geofencing.",
-                      ),
-                      SizedBox(height: 10),
-                      sectionImage('assets/navigate.png'),
-                      SizedBox(height: 30),
-                    ],
-                  ),
+                        SizedBox(height: 30),
+                        sectionTitle(context, "PENDAHULUAN"),
+                        sectionText(
+                          context,
+                          "Aplikasi ini dirancang untuk membantu pengemudi ojek online tunarungu "
+                          "dalam navigasi menggunakan sistem getaran di telinga.",
+                        ),
+                        SizedBox(height: 20),
+                        sectionTitle(context, "INSTALASI & OPERASIONAL"),
+                        sectionBulletText(
+                          context,
+                          "• Hidupkan Wi-Fi dan hubungkan ponsel dengan headset vibrasi.",
+                        ),
+                        sectionBulletText(
+                          context,
+                          "• Pastikan GPS sudah menyala sebelum menjalankan aplikasi.",
+                        ),
+                        sectionSubBulletText(
+                          context,
+                          "Apabila aplikasi tidak berjalan, pastikan perizinan akses lokasi "
+                          "pada navigasi di pengaturan ponsel sudah menyala.",
+                        ),
+                        SizedBox(height: 20),
+                        sectionTitle(context, "NOTIFIKASI HEADSET VIBRASI"),
+                        sectionText(
+                          context,
+                          "Navigasi dalam aplikasi ini bekerja dengan sistem geofencing.",
+                        ),
+                        SizedBox(height: 10),
+                        sectionImage('assets/navigate.png'),
+                        Padding(
+                          padding: EdgeInsets.symmetric(
+                              horizontal:
+                                  1.8), // Sesuaikan angka sesuai keinginan
+                          child: sectionImage('assets/navigatedua.png'),
+                        ),
+                      ]),
                 ),
               ),
             ),
@@ -181,8 +185,8 @@ class ProfileUSMPage extends StatelessWidget {
       child: Image.asset(
         assetPath,
         width: double.infinity, // Sesuaikan dengan lebar layar
-        height: 450, // Sesuaikan tinggi agar proporsional
-        fit: BoxFit.contain, // Jaga agar gambar tidak terpotong
+        // height: 450, // Sesuaikan tinggi agar proporsional
+        fit: BoxFit.cover, // Jaga agar gambar tidak terpotong
       ),
     );
   }

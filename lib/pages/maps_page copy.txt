@@ -62,13 +62,6 @@ class _MapPageState extends State<MapPage> {
   late Future<void> _initialLocationFuture;
   Timer? _locationUpdateTimer; // Timer untuk pembaruan lokasi
 
-  void _updateDistanceDuration(String? distance, String? duration) {
-    setState(() {
-      _placeDistance = distance;
-      _placeDuration = duration;
-    });
-  }
-
   @override
   void initState() {
     super.initState();
@@ -106,7 +99,6 @@ class _MapPageState extends State<MapPage> {
             setState,
             _routeOptions,
             _selectedRouteIndex,
-            _updateDistanceDuration, // Tambahkan parameter ini
           );
         } else if (mapController != null) {
           print('Navigasi tidak aktif, hanya memperbarui kamera');
@@ -429,7 +421,12 @@ class _MapPageState extends State<MapPage> {
                                 originalPolylineCoordinates,
                                 polylines,
                                 setState,
-                                _updateDistanceDuration,
+                                (distance, duration) {
+                                  setState(() {
+                                    _placeDistance = distance;
+                                    _placeDuration = duration;
+                                  });
+                                },
                               );
                             },
                           ),
@@ -452,7 +449,12 @@ class _MapPageState extends State<MapPage> {
                                 polylines,
                                 _routeOptions,
                                 setState,
-                                _updateDistanceDuration,
+                                (distance, duration) {
+                                  setState(() {
+                                    _placeDistance = distance;
+                                    _placeDuration = duration;
+                                  });
+                                },
                                 (isCalculating) {
                                   setState(() {
                                     _isCalculatingRoute = isCalculating;

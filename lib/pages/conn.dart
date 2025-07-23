@@ -22,7 +22,8 @@ class _ConnPageState extends State<ConnPage> {
 
   // BLE UUIDs (must match ESP32)
   final Uuid serviceUuid = Uuid.parse("4fafc201-1fb5-459e-8fcc-c5c9c331914b");
-  final Uuid characteristicUuid = Uuid.parse("beb5483e-36e1-4688-b7f5-ea07361b26a8");
+  final Uuid characteristicUuid =
+      Uuid.parse("beb5483e-36e1-4688-b7f5-ea07361b26a8");
 
   @override
   void initState() {
@@ -84,7 +85,8 @@ class _ConnPageState extends State<ConnPage> {
         connectionTimeout: const Duration(seconds: 10),
       )
           .listen((connectionState) {
-        if (connectionState.connectionState == DeviceConnectionState.connected) {
+        if (connectionState.connectionState ==
+            DeviceConnectionState.connected) {
           setState(() {
             isConnected = true;
             Global.connectedDeviceId = device.id;
@@ -177,29 +179,6 @@ class _ConnPageState extends State<ConnPage> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
-                          "Status baterai",
-                          style: TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize: 16,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        const Text(
-                          "100%",
-                          style: TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
                           "Koneksi",
                           style: TextStyle(
                             fontFamily: 'Poppins',
@@ -253,34 +232,6 @@ class _ConnPageState extends State<ConnPage> {
                     ),
                   ],
                 ),
-              ),
-            ),
-          ),
-          Positioned(
-            top: 20,
-            left: 16,
-            child: GestureDetector(
-              onTap: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => ProfilePage()),
-                );
-              },
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white,
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 4,
-                      offset: Offset(2, 2),
-                    ),
-                  ],
-                ),
-                child: const Icon(Icons.arrow_back, color: Color(0xFF0E1756)),
               ),
             ),
           ),
